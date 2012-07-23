@@ -21,15 +21,15 @@ class HTMLElement(Widget):
                 i = self.__dict__[fi]
                 ns = "-".join([namespace, i.attributes._name]) if namespace else i.attributes._name
                 if kwargs.get("render_labels", None):
-                    label = "%s_%s" % (self.attributes.prepend, ns) if self.attributes.prepend else ns 
+                    label = "%s_%s" % (self.attributes.prepend, ns) if self.attributes.prepend else ns
                     if i.attributes.label: parts.append(self.render_label(label, i.attributes.label))
                 a = i.render(namespace=ns, **kwargs)
                 if isinstance(a, list): parts.extend(a)
                 else: parts.append(a)
             except Exception as e:
-                print e
+                print(e)
                 pass
-        
+
         return parts
 
     def render_label(self, name, label):
@@ -41,11 +41,11 @@ class HTMLElement(Widget):
     def compile_tag(self, obj, close=True):
         atts = ["<%s" % obj.pop("tag", "input")]
         obj.update(obj.pop("extra", {}))
-        for k,v in obj.iteritems():
+        for k,v in obj.items():
             if v in EMPTY: continue
             v = v if isinstance(v, list) else [v]
             atts.append(u"%s='%s'" % (k, u" ".join([escape(val) for val in v])))
-        
+
         atts.append("/>" if close else ">")
         return u" ".join(atts)
 
@@ -55,7 +55,7 @@ class HTMLElement(Widget):
             yield v
 
 class Input(HTMLElement):
-    
+
     def render(self, *args, **kwargs):
         self._type = kwargs.get("type", self._type)
         self.attributes._name = kwargs.get("namespace", self.attributes._name)
@@ -106,7 +106,7 @@ class Select(Input):
             display = i['display'] if isinstance(i, dict) else i
             sel = "selected='SELECTED'" if val == self.object._value else ""
             ch.append("<option value='%s' %s>%s</option>" % (val, sel, display))
-        
+
         return "%s%s</select>" % (st, "".join(ch))
 
 class MultipleSelect(Input):
@@ -127,7 +127,7 @@ class MultipleSelect(Input):
             display = i['display'] if isinstance(i, dict) else i
             sel = "selected='SELECTED'" if val in self.object else ""
             ch.append("<option value='%s' %s>%s</option>" % (val, sel, display))
-        
+
         return "%s%s</select>" % (st, "".join(ch))
 
 
@@ -147,7 +147,7 @@ class TextArea(Input):
         st = self.compile_tag(obj, close=False)
         return "%s%s</textarea>" % (st, self.attributes.value if self.attributes.value else "")
 
-    
+
 class FieldSet(HTMLElement):
 
     def render(self, *args, **kwargs):
@@ -170,7 +170,7 @@ class FieldSet(HTMLElement):
 class Form(HTMLElement):
     #Attributes
     errors = {}
-        
+
     def render(self, *args, **kwargs):
         val = super(Form, self).render(*args, **kwargs)
         parts = []
@@ -193,25 +193,25 @@ class Form(HTMLElement):
 
     def parse_data(self, data):
         obj = {}
-        for k,v in data.iteritems():
+        for k,v in data.items():
             key = k[len(self._prepend)+1:] if self._prepend else k
             parts = key.split('-')
             branch = obj
             for part in parts[0:-1]:
                 branch = branch.setdefault(part, {})
-        
+
             branch[parts[-1]] = v
-        
+
         return obj
 
     def validate(self):
-        if self._data: 
+        if self._data:
             obj = self.parse_data(self._data)
-            print obj
+            print(obj)
             self.object._map(obj)
             errors = self.object._errors()
             if len(errors.keys()):
-                for k,v in errors.iteritems():
+                for k,v in errors.items():
                     try:
                         self.__dict__[k].errors.append(v)
                     except: pass
