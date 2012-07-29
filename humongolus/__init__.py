@@ -667,8 +667,29 @@ class Document(base):
             - `*args`: passed directly to Connection.find_one()
             - `**kwargs`: passed directly to Connection.find_one()
         """
-        if not kwargs.get("as_dict", None): kwargs['as_class'] = cls
+        if not kwargs.get("as_dict", None):
+            kwargs['as_class'] = cls
         return cls._connection().find_one(*args, **kwargs)
+
+    @classmethod
+    def select(cls, skip=0, limit=20, sort="_id desc", *args, **kwargs):
+        """
+        select(sort="_id desc, name asc, age ")
+            is sort by _id desc, name asc , age asc
+        """
+        key_directions = list()
+        for k_d in sort.split(','):
+            list_pair = k_d.split()
+            if len(list_pair) < 2:
+                list_pair.append('asc')
+
+            if(list_pair[1] == 'desc'):
+                pair = (list_pair[0], pymongo.DESCENDING)
+            else:
+                pair = (list_pair[0], pymongo.ASCENDING)
+            key_directions.append(pair)
+
+            return cls.find(*args, **kwargs).skip(skip).limit(limit).sort(key_directions)
 
     @classmethod
     def __ensureindexes__(cls):
